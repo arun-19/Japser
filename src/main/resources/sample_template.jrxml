@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample JRXML Template with 'name' parameter                          -->
+<!-- Upload this to POST /api/reports/upload                               -->
+<!-- Then call GET /api/reports/1/view?name=YourName to see it as PDF     -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="SampleReport"
+              pageWidth="595"
+              pageHeight="842"
+              columnWidth="555"
+              leftMargin="20"
+              rightMargin="20"
+              topMargin="20"
+              bottomMargin="20"
+              uuid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
+
+    <!-- ==================== Parameters ==================== -->
+    <parameter name="name" class="java.lang.String">
+        <defaultValueExpression><![CDATA["Guest"]]></defaultValueExpression>
+    </parameter>
+    <parameter name="company" class="java.lang.String">
+        <defaultValueExpression><![CDATA["My Company"]]></defaultValueExpression>
+    </parameter>
+    <parameter name="reportDate" class="java.lang.String">
+        <defaultValueExpression><![CDATA["N/A"]]></defaultValueExpression>
+    </parameter>
+
+    <!-- ==================== Styles ==================== -->
+    <style name="Title" fontName="Arial" fontSize="20" isBold="true"/>
+    <style name="SubTitle" fontName="Arial" fontSize="14" isBold="false"/>
+    <style name="Normal" fontName="Arial" fontSize="11"/>
+    <style name="TableHeader" fontName="Arial" fontSize="11" isBold="true" backcolor="#4472C4" mode="Opaque">
+        <box>
+            <pen lineWidth="0.5"/>
+        </box>
+    </style>
+    <style name="TableCell" fontName="Arial" fontSize="10">
+        <box>
+            <pen lineWidth="0.5"/>
+        </box>
+    </style>
+
+    <!-- ==================== No Data Band ==================== -->
+    <noData>
+        <band height="50"/>
+    </noData>
+
+    <!-- ==================== Title Band ==================== -->
+    <title>
+        <band height="80" splitType="Stretch">
+
+            <!-- Header background bar -->
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="5" backcolor="#4472C4" mode="Opaque" uuid="bg-bar"/>
+                <textElement/>
+                <text><![CDATA[]]></text>
+            </staticText>
+
+            <!-- Company name -->
+            <textField>
+                <reportElement x="0" y="10" width="555" height="30" uuid="company-field"/>
+                <textElement textAlignment="Center">
+                    <font size="16" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$P{company}]]></textFieldExpression>
+            </textField>
+
+            <!-- Report title -->
+            <staticText>
+                <reportElement x="0" y="45" width="555" height="25" uuid="title-text"/>
+                <textElement textAlignment="Center">
+                    <font size="20" isBold="true"/>
+                </textElement>
+                <text><![CDATA[SAMPLE REPORT]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <!-- ==================== Page Header ==================== -->
+    <pageHeader>
+        <band height="50">
+            <!-- Greeting with parameter 'name' -->
+            <textField>
+                <reportElement x="0" y="5" width="400" height="25" uuid="greeting-field"/>
+                <textElement>
+                    <font size="13" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Hello, " + $P{name} + "!"]]></textFieldExpression>
+            </textField>
+
+            <!-- Date -->
+            <textField>
+                <reportElement x="0" y="30" width="300" height="15" uuid="date-param"/>
+                <textElement>
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Date: " + $P{reportDate}]]></textFieldExpression>
+            </textField>
+
+            <!-- Page number -->
+            <textField>
+                <reportElement x="400" y="5" width="155" height="20" uuid="page-num"/>
+                <textElement textAlignment="Right">
+                    <font size="9"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageHeader>
+
+    <!-- ==================== Detail Band ==================== -->
+    <detail>
+        <band height="100" splitType="Stretch">
+            <!-- Info box -->
+            <rectangle>
+                <reportElement x="0" y="5" width="555" height="85" backcolor="#F2F2F2" mode="Opaque" uuid="info-box"/>
+                <graphicElement>
+                    <pen lineWidth="1.0" lineColor="#CCCCCC"/>
+                </graphicElement>
+            </rectangle>
+
+            <staticText>
+                <reportElement x="10" y="15" width="535" height="18" uuid="info-label"/>
+                <textElement>
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Report Information]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="10" y="38" width="200" height="15" uuid="name-label"/>
+                <textElement><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Recipient Name:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="215" y="38" width="330" height="15" uuid="name-value"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA[$P{name}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="10" y="58" width="200" height="15" uuid="company-label"/>
+                <textElement><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Company:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="215" y="58" width="330" height="15" uuid="company-value"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA[$P{company}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="10" y="75" width="200" height="15" uuid="date-label"/>
+                <textElement><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Report Date:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="215" y="75" width="330" height="15" uuid="date-value"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA[$P{reportDate}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <!-- ==================== Page Footer ==================== -->
+    <pageFooter>
+        <band height="30">
+            <line>
+                <reportElement x="0" y="0" width="555" height="1" uuid="footer-line"/>
+            </line>
+            <staticText>
+                <reportElement x="0" y="5" width="300" height="20" uuid="footer-text"/>
+                <textElement><font size="8"/></textElement>
+                <text><![CDATA[Generated by Jasper Reports API]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="400" y="5" width="155" height="20" uuid="footer-page"/>
+                <textElement textAlignment="Right"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER} + " of " + $V{PAGE_COUNT}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+</jasperReport>

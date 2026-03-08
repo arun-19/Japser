@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jasper Reports Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --card:     #1c2230;
+      --border:   #30363d;
+      --accent:   #58a6ff;
+      --accent2:  #3fb950;
+      --danger:   #f85149;
+      --warning:  #d29922;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --radius:   12px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), #a371f7);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: #fff;
+      box-shadow: 0 0 20px rgba(88,166,255,0.3);
+    }
+    header h1 { font-size: 1.1rem; font-weight: 600; }
+    header .badge {
+      margin-left: auto;
+      font-size: 0.72rem;
+      background: rgba(63,185,80,0.15);
+      color: var(--accent2);
+      border: 1px solid rgba(63,185,80,0.3);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* ===== LAYOUT ===== */
+    .main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* ===== TABS ===== */
+    .tabs {
+      display: flex; gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px;
+      margin-bottom: 2rem;
+    }
+    .tab-btn {
+      flex: 1; padding: 9px 16px;
+      border: none; border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.875rem; font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tab-btn.active {
+      background: var(--card);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,.4);
+    }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    .tab-panel { display: none; animation: fadeIn .25s; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
+
+    /* ===== CARD ===== */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1rem; font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title span { font-size: 1.25rem; }
+
+    /* ===== FORM ===== */
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; letter-spacing: .4px; }
+    input[type=text], select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input[type=text]:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(88,166,255,.15);
+    }
+
+    /* ===== DROP ZONE ===== */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(88,166,255,.05);
+    }
+    .drop-zone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+    }
+    .drop-zone .dz-icon { font-size: 2rem; margin-bottom: 8px; }
+    .drop-zone .dz-label { font-size: 0.9rem; color: var(--muted); }
+    .drop-zone .dz-label strong { color: var(--accent); }
+    .drop-zone .dz-file-name {
+      margin-top: 8px; font-size: 0.85rem;
+      color: var(--accent2); font-weight: 500;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px;
+      border-radius: 8px; border: none;
+      font-size: 0.875rem; font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #1f6feb, var(--accent));
+      color: #fff;
+      box-shadow: 0 0 12px rgba(88,166,255,.2);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(88,166,255,.35); }
+    .btn-success {
+      background: linear-gradient(135deg, #2ea043, var(--accent2));
+      color: #fff;
+    }
+    .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(63,185,80,.35); }
+    .btn-danger { background: rgba(248,81,73,.15); color: var(--danger); border: 1px solid rgba(248,81,73,.3); }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-outline { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 1.25rem; flex-wrap: wrap; }
+
+    /* ===== SPINNER ===== */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== TOAST ===== */
+    #toast-container {
+      position: fixed; top: 80px; right: 20px;
+      display: flex; flex-direction: column; gap: 10px;
+      z-index: 9999;
+    }
+    .toast {
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      min-width: 260px;
+      display: flex; align-items: center; gap: 10px;
+      animation: slideIn .3s ease;
+      box-shadow: 0 8px 30px rgba(0,0,0,.4);
+    }
+    @keyframes slideIn { from { transform: translateX(120%); opacity:0; } to { transform:none; opacity:1; } }
+    .toast-success { background: #12261d; border: 1px solid rgba(63,185,80,.4); color: var(--accent2); }
+    .toast-error   { background: #1f1213; border: 1px solid rgba(248,81,73,.4);  color: var(--danger); }
+    .toast-info    { background: #0d1f36; border: 1px solid rgba(88,166,255,.4); color: var(--accent); }
+
+    /* ===== TEMPLATE LIST ===== */
+    .template-list { display: flex; flex-direction: column; gap: 12px; }
+    .template-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; gap: 14px;
+      transition: border-color .2s;
+    }
+    .template-item:hover { border-color: rgba(88,166,255,.4); }
+    .template-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, rgba(88,166,255,.15), rgba(163,113,247,.15));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; flex-shrink: 0;
+    }
+    .template-info { flex: 1; min-width: 0; }
+    .template-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 3px; }
+    .template-meta { font-size: 0.78rem; color: var(--muted); }
+    .template-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .icon-btn {
+      width: 34px; height: 34px;
+      border-radius: 7px; border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      transition: all .18s;
+    }
+    .icon-btn:hover.edit   { border-color: var(--accent);   color: var(--accent); }
+    .icon-btn:hover.delete { border-color: var(--danger);   color: var(--danger); }
+    .icon-btn:hover.view   { border-color: var(--accent2);  color: var(--accent2); }
+    .icon-btn:hover.dl     { border-color: var(--warning);  color: var(--warning); }
+
+    /* ===== GENERATE SECTION ===== */
+    .param-group { display: flex; gap: 10px; margin-bottom: 10px; }
+    .param-group input { flex: 1; }
+    .param-group .remove-param {
+      width: 36px; height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 7px; background: transparent;
+      color: var(--danger); cursor: pointer; font-size: 1.1rem;
+      align-self: flex-end;
+      transition: all .18s;
+    }
+    .param-group .remove-param:hover { background: rgba(248,81,73,.1); border-color: var(--danger); }
+
+    /* ===== EMPTY STATE ===== */
+    .empty {
+      text-align: center; padding: 3rem 1rem; color: var(--muted);
+    }
+    .empty .empty-icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.65);
+      display: none; align-items: center; justify-content: center;
+      z-index: 200;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { display: flex; animation: fadeIn .2s; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      width: 90%; max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+      animation: popIn .25s;
+    }
+    @keyframes popIn { from { transform: scale(.95); opacity:0; } to { transform: none; opacity:1; } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+    .modal-title  { font-size: 1rem; font-weight: 600; }
+    .modal-close  { background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
+    .modal-close:hover { color: var(--text); }
+
+    /* ===== PDF VIEWER MODAL ===== */
+    .pdf-modal .modal { width: 90vw; max-width: 900px; padding: 1rem; }
+    .pdf-frame { width: 100%; height: 70vh; border: none; border-radius: 8px; background: #fff; }
+
+    /* ===== STAT PILLS ===== */
+    .stats { display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .stat-pill {
+      flex: 1; min-width: 140px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .stat-icon { font-size: 1.4rem; }
+    .stat-val  { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+    .stat-lbl  { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    @media (max-width: 600px) {
+      .template-actions { flex-wrap: wrap; }
+      .btn-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== TOAST ========== -->
+<div id="toast-container"></div>
+
+<!-- ========== HEADER ========== -->
+<header>
+  <div class="logo">J</div>
+  <h1>Jasper Reports Manager</h1>
+  <span class="badge" id="api-badge">● Checking…</span>
+</header>
+
+<!-- ========== MAIN ========== -->
+<main class="main">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-pill">
+      <span class="stat-icon">📄</span>
+      <div>
+        <div class="stat-val" id="stat-templates">0</div>
+        <div class="stat-lbl">Templates</div>
+      </div>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-icon">🌐</span>
+      <div>
+        <div class="stat-val">8080</div>
+        <div class="stat-lbl">API Port</div>
+      </div>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-icon">🗄️</span>
+      <div>
+        <div class="stat-val">MySQL</div>
+        <div class="stat-lbl">Database</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('upload')">⬆️ Upload</button>
+    <button class="tab-btn"        onclick="switchTab('templates')">📋 Templates</button>
+    <button class="tab-btn"        onclick="switchTab('generate')">🔄 Generate PDF</button>
+  </div>
+
+  <!-- ===== TAB: UPLOAD ===== -->
+  <div id="tab-upload" class="tab-panel active">
+    <div class="card">
+      <div class="card-title"><span>⬆️</span> Upload JRXML Template</div>
+
+      <div class="form-group">
+        <label>REPORT NAME *</label>
+        <input type="text" id="upload-name" placeholder="e.g. Invoice Report, PO Report…"/>
+      </div>
+
+      <div class="form-group">
+        <label>JRXML FILE *</label>
+        <div class="drop-zone" id="upload-drop">
+          <input type="file" id="upload-file" accept=".jrxml"
+                 onchange="onFileSelect(this,'upload-drop','upload-file-name')"/>
+          <div class="dz-icon">📂</div>
+          <div class="dz-label"><strong>Click to browse</strong> or drag & drop your .jrxml file</div>
+          <div class="dz-file-name" id="upload-file-name"></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="uploadTemplate()">
+          <span id="upload-spinner" style="display:none" class="spinner"></span>
+          ⬆️ Upload Template
+        </button>
+        <button class="btn btn-outline" onclick="clearUpload()">✖ Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: TEMPLATES ===== -->
+  <div id="tab-templates" class="tab-panel">
+    <div class="card">
+      <div class="card-title" style="justify-content: space-between;">
+        <span style="display:flex;align-items:center;gap:8px"><span>📋</span> Saved Templates</span>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:.8rem" onclick="loadTemplates()">⟳ Refresh</button>
+      </div>
+      <div class="template-list" id="template-list">
+        <div class="empty"><span class="empty-icon">📁</span>No templates yet. Upload a .jrxml to get started.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: GENERATE ===== -->
+  <div id="tab-generate" class="tab-panel">
+    <div class="card">
+      <div class="card-title"><span>🔄</span> Generate PDF</div>
+
+      <div class="form-group">
+        <label>SELECT TEMPLATE</label>
+        <select id="gen-template" onchange="onTemplateSelect()">
+          <option value="">— choose a template —</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="params-section" style="display:none">
+        <label>REPORT PARAMETERS</label>
+        <div id="params-container">
+          <!-- Dynamically filled by JS based on the template's expected JRXML parameters -->
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="generatePdf('view')">
+          <span id="view-spinner" style="display:none" class="spinner"></span>
+          👁️ View PDF
+        </button>
+        <button class="btn btn-primary" onclick="generatePdf('download')">
+          <span id="dl-spinner" style="display:none" class="spinner"></span>
+          ⬇️ Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ========== EDIT MODAL ========== -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Update Template</div>
+      <button class="modal-close" onclick="closeModal('edit-modal')">✕</button>
+    </div>
+
+    <input type="hidden" id="edit-id"/>
+
+    <div class="form-group">
+      <label>NEW REPORT NAME</label>
+      <input type="text" id="edit-name" placeholder="Leave blank to keep current name"/>
+    </div>
+
+    <div class="form-group">
+      <label>REPLACE JRXML FILE <span style="color:var(--muted)">(optional)</span></label>
+      <div class="drop-zone" id="edit-drop">
+        <input type="file" id="edit-file" accept=".jrxml"
+               onchange="onFileSelect(this,'edit-drop','edit-file-name')"/>
+        <div class="dz-icon">📂</div>
+        <div class="dz-label"><strong>Click to browse</strong> or drag & drop a new .jrxml</div>
+        <div class="dz-file-name" id="edit-file-name"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="submitUpdate()">
+        <span id="update-spinner" style="display:none" class="spinner"></span>
+        💾 Save Changes
+      </button>
+      <button class="btn btn-outline" onclick="closeModal('edit-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PDF VIEWER MODAL ========== -->
+<div class="modal-overlay pdf-modal" id="pdf-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📄 PDF Preview</div>
+      <button class="modal-close" onclick="closeModal('pdf-modal')">✕</button>
+    </div>
+    <iframe class="pdf-frame" id="pdf-frame" src=""></iframe>
+  </div>
+</div>
+
+<!-- ========== CONFIRM DELETE ========== -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">🗑️ Delete Template?</div>
+      <button class="modal-close" onclick="closeModal('confirm-modal')">✕</button>
+    </div>
+    <p style="color:var(--muted);font-size:.9rem;margin-bottom:1.5rem">
+      This will permanently remove the template and its .jrxml file from disk.
+    </p>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="confirmDelete()">🗑️ Yes, Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('confirm-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BASE = 'http://localhost:8080/api/reports';
+  let deleteTargetId = null;
+
+  // ───── API CHECK ─────
+  async function checkApi() {
+    try {
+      const r = await fetch(`${BASE}/health`);
+      const badge = document.getElementById('api-badge');
+      if (r.ok) {
+        badge.textContent = '● API Online';
+        badge.style.background = 'rgba(63,185,80,.15)';
+        badge.style.color = 'var(--accent2)';
+        badge.style.borderColor = 'rgba(63,185,80,.3)';
+      } else { apiBadgeOffline(); }
+    } catch { apiBadgeOffline(); }
+  }
+  function apiBadgeOffline() {
+    const b = document.getElementById('api-badge');
+    b.textContent = '● API Offline';
+    b.style.background = 'rgba(248,81,73,.15)';
+    b.style.color = 'var(--danger)';
+    b.style.borderColor = 'rgba(248,81,73,.3)';
+  }
+
+  // ───── TABS ─────
+  function switchTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+    if (name === 'templates') loadTemplates();
+    if (name === 'generate')  loadTemplateSelector();
+  }
+
+  // ───── FILE SELECT ─────
+  function onFileSelect(input, dropId, labelId) {
+    const f = input.files[0];
+    document.getElementById(labelId).textContent = f ? '✔ ' + f.name : '';
+    const dz = document.getElementById(dropId);
+    dz.style.borderColor = f ? 'var(--accent2)' : '';
+  }
+
+  // Drag & Drop
+  document.querySelectorAll('.drop-zone').forEach(dz => {
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('drag-over');
+      const input = dz.querySelector('input[type=file]');
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    });
+  });
+
+  // ───── TOAST ─────
+  function toast(msg, type = 'info') {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    const icons = { success: '✔', error: '✖', info: 'ℹ' };
+    t.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+    c.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(120%)'; t.style.transition = '.3s'; setTimeout(() => t.remove(), 320); }, 3500);
+  }
+
+  // ───── UPLOAD ─────
+  async function uploadTemplate() {
+    const name = document.getElementById('upload-name').value.trim();
+    const file = document.getElementById('upload-file').files[0];
+
+    if (!name) { toast('Please enter a report name', 'error'); return; }
+    if (!file)  { toast('Please select a .jrxml file', 'error'); return; }
+
+    setBtnLoading('upload-spinner', true);
+    const fd = new FormData();
+    fd.append('name', name);
+    fd.append('file', file);
+
+    try {
+      const r = await fetch(`${BASE}/upload`, { method: 'POST', body: fd });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Upload failed');
+      toast(`✔ "${data.name}" uploaded successfully (ID: ${data.id})`, 'success');
+      document.getElementById('stat-templates').textContent = parseInt(document.getElementById('stat-templates').textContent) + 1;
+      clearUpload();
+    } catch (e) { toast(e.message, 'error'); }
+    finally { setBtnLoading('upload-spinner', false); }
+  }
+
+  function clearUpload() {
+    document.getElementById('upload-name').value = '';
+    document.getElementById('upload-file').value = '';
+    document.getElementById('upload-file-name').textContent = '';
+    document.getElementById('upload-drop').style.borderColor = '';
+  }
+
+  // ───── LOAD TEMPLATES ─────
+  async function loadTemplates() {
+    try {
+      const r = await fetch(`${BASE}`);
+      const data = await r.json();
+      document.getElementById('stat-templates').textContent = data.length;
+      renderTemplates(data);
+      loadTemplateSelector(data);
+    } catch { toast('Could not load templates', 'error'); }
+  }
+
+  function renderTemplates(list) {
+    const el = document.getElementById('template-list');
+    if (!list.length) {
+      el.innerHTML = '<div class="empty"><span class="empty-icon">📁</span>No templates yet. Upload a .jrxml to get started.</div>';
+      return;
+    }
+    el.innerHTML = list.map(t => `
+      <div class="template-item" id="tpl-${t.id}">
+        <div class="template-icon">📄</div>
+        <div class="template-info">
+          <div class="template-name">${esc(t.name)}</div>
+          <div class="template-meta">ID: ${t.id} &nbsp;·&nbsp; ${esc(t.fileName)} &nbsp;·&nbsp; ${fmtDate(t.createdAt)}</div>
+        </div>
+        <div class="template-actions">
+          <button class="icon-btn edit"   title="Edit"     onclick="openEdit(${t.id},'${esc(t.name)}')">✏️</button>
+          <button class="icon-btn view"   title="View PDF" onclick="quickView(${t.id})">👁️</button>
+          <button class="icon-btn dl"     title="Download" onclick="quickDownload(${t.id})">⬇️</button>
+          <button class="icon-btn delete" title="Delete"   onclick="openDelete(${t.id})">🗑️</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // ───── EDIT MODAL ─────
+  function openEdit(id, name) {
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-name').value = name;
+    document.getElementById('edit-file').value = '';
+    document.getElementById('edit-file-name').textContent = '';
+    document.getElementById('edit-drop').style.borderColor = '';
+    document.getElementById('edit-modal').classList.add('open');
+  }
+
+  async function submitUpdate() {
+    const id   = document.getElementById('edit-id').value;
+    const name = document.getElementById('edit-name').value.trim();
+    const file = document.getElementById('edit-file').files[0];
+
+    if (!name && !file) { toast('Provide a new name or a new file', 'error'); return; }
+
+    setBtnLoading('update-spinner', true);
+    const fd = new FormData();
+    if (name) fd.append('name', name);
+    if (file) fd.append('file', file);
+
+    try {
+      const r = await fetch(`${BASE}/${id}`, { method: 'PUT', body: fd });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Update failed');
+      toast(`✔ Template updated: "${data.name}"`, 'success');
+      closeModal('edit-modal');
+      loadTemplates();
+    } catch (e) { toast(e.message, 'error'); }
+    finally { setBtnLoading('update-spinner', false); }
+  }
+
+  // ───── DELETE ─────
+  function openDelete(id) {
+    deleteTargetId = id;
+    document.getElementById('confirm-modal').classList.add('open');
+  }
+
+  async function confirmDelete() {
+    if (!deleteTargetId) return;
+    try {
+      const r = await fetch(`${BASE}/${deleteTargetId}`, { method: 'DELETE' });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Delete failed');
+      toast('🗑️ Template deleted', 'success');
+      closeModal('confirm-modal');
+      loadTemplates();
+    } catch (e) { toast(e.message, 'error'); }
+    deleteTargetId = null;
+  }
+
+  // ───── QUICK VIEW / DOWNLOAD ─────
+  function quickView(id) {
+    const name = prompt('Enter value for "name" parameter:', 'Guest') || 'Guest';
+    openPdfViewer(`${BASE}/${id}/view?name=${encodeURIComponent(name)}`);
+  }
+
+  function quickDownload(id) {
+    const name = prompt('Enter value for "name" parameter:', 'Guest') || 'Guest';
+    window.open(`${BASE}/${id}/download?name=${encodeURIComponent(name)}`, '_blank');
+  }
+
+  // ───── GENERATE TAB ─────
+  function loadTemplateSelector(list) {
+    const sel = document.getElementById('gen-template');
+    const doLoad = (data) => {
+      sel.innerHTML = '<option value="">— choose a template —</option>' +
+        data.map(t => `<option value="${t.id}">${esc(t.name)} (ID:${t.id})</option>`).join('');
+    };
+    if (list) { doLoad(list); return; }
+    fetch(`${BASE}`).then(r => r.json()).then(doLoad).catch(() => {});
+  }
+
+  async function onTemplateSelect() {
+    const id = document.getElementById('gen-template').value;
+    const section = document.getElementById('params-section');
+    const container = document.getElementById('params-container');
+    
+    if (!id) {
+      section.style.display = 'none';
+      container.innerHTML = '';
+      return;
+    }
+
+    try {
+      const r = await fetch(`${BASE}/${id}/parameters`);
+      const params = await r.json();
+      
+      const keys = Object.keys(params);
+      if (keys.length === 0) {
+        container.innerHTML = `<div style="color:var(--muted);font-size:0.85rem">This template does not require any parameters.</div>`;
+      } else {
+        container.innerHTML = keys.map(k => {
+          // Check datatype hint
+          const type = params[k];
+          let inputType = 'text';
+          if (type.includes('Integer') || type.includes('Long') || type.includes('Double') || type.includes('Float')) {
+            inputType = 'number';
+          }
+
+          return `
+            <div class="param-group">
+              <input type="text" class="p-key" value="${k}" readonly style="max-width:160px;background:rgba(255,255,255,0.05);color:var(--muted)"/>
+              <input type="${inputType}" class="p-val" placeholder="Value for ${k} (${type.split('.').pop()})" />
+            </div>
+          `;
+        }).join('');
+      }
+      section.style.display = 'block';
+    } catch (e) {
+      toast('Failed to load parameters', 'error');
+    }
+  }
+
+  async function generatePdf(action) {
+    const id = document.getElementById('gen-template').value;
+    if (!id) { toast('Please select a template', 'error'); return; }
+
+    const params = {};
+    document.querySelectorAll('.param-group').forEach(g => {
+      const k = g.querySelector('.p-key').value.trim();
+      const v = g.querySelector('.p-val').value.trim();
+      if (k) params[k] = v;
+    });
+
+    const spinnerId = action === 'view' ? 'view-spinner' : 'dl-spinner';
+    setBtnLoading(spinnerId, true);
+
+    const qs = Object.entries(params).map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+    const url = `${BASE}/${id}/${action}${qs ? '?' + qs : ''}`;
+
+    try {
+      if (action === 'view') {
+        openPdfViewer(url);
+      } else {
+        window.open(url, '_blank');
+        toast('⬇️ PDF download started', 'success');
+      }
+    } finally { setTimeout(() => setBtnLoading(spinnerId, false), 800); }
+  }
+
+  // ───── PDF VIEWER ─────
+  function openPdfViewer(url) {
+    document.getElementById('pdf-frame').src = url;
+    document.getElementById('pdf-modal').classList.add('open');
+  }
+
+  // ───── CLOSE MODAL ─────
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    if (id === 'pdf-modal') document.getElementById('pdf-frame').src = '';
+  }
+
+  // Close modal on backdrop click
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+  });
+
+  // ───── HELPERS ─────
+  function setBtnLoading(spinnerId, loading) {
+    const s = document.getElementById(spinnerId);
+    if (s) s.style.display = loading ? 'inline-block' : 'none';
+  }
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtDate(d) {
+    if (!d) return '';
+    try { return new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }); } catch { return d; }
+  }
+
+  // ───── INIT ─────
+  checkApi();
+  loadTemplates();
+  setInterval(checkApi, 15000);
+</script>
+</body>
+</html>
